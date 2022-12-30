@@ -3,8 +3,8 @@ const cardSchema = mongoose.Schema({
   name: {
     type: String,
     required: true,
-    minlenght: 2,
-    maxlenght: 30,
+    minlength: [2, 'Строка должна содержать как минимум 2 символа'],
+    maxlength: [30, 'Строка не должна первышать 30 символов'],
   },
   link: {
     type: String,
