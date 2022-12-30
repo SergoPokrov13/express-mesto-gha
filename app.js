@@ -19,6 +19,7 @@ app.use((req, res, next) => {
 });
 
 app.use(routes);
+app.use(express.json());
 
 app.listen(PORT, () => {
   console.log(`Сервер запущен на ${PORT} порту`);
