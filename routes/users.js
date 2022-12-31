@@ -15,5 +15,4 @@ userRoutes.post('/', express.json(), createUser);
 userRoutes.patch('/me', express.json(), updateUser);
 userRoutes.patch('/me/avatar', express.json(), updateUserAvatar);
 
-
 module.exports = userRoutes;
