@@ -1,4 +1,10 @@
 const User = require('../models/User');
+const {
+    CREATED_CODE,
+    ERROR_CODE,
+    NOT_FOUND_CODE,
+    SERVER_ERROR_CODE,
+} = require('../utils/statusError');
 const createUser = async(req, res) => {
     try {
         const {
@@ -11,19 +17,17 @@ const createUser = async(req, res) => {
             about,
             avatar
         });
-        return res.status(201).send({
+        return res.status(CREATED_CODE).send({
             data: user
         });
     } catch (err) {
         if (err.name === 'ValidationError') {
-            return res.status(400).send({
-                message: 'Переданы некорректные данные',
-                ...err
+            return res.status(ERROR_CODE).send({
+                message: 'Переданы некорректные данные'
             });
         }
-        return res.status(500).send({
-            message: 'Произошла неизвестная ошибка',
-            ...err
+        return res.status(SERVER_ERROR_CODE).send({
+            message: 'Произошла неизвестная ошибка'
         });
     }
 };
@@ -39,27 +43,29 @@ const updateUser = async(req, res) => {
         }, {
             new: true,
             runValidators: true,
-            upsert: true,
+            upsert: false,
         }, );
-        return res.status(200).send({
-            data: user
+        if (user) {
+            return res.send({
+                data: user
+            });
+        }
+        return res.status(NOT_FOUND_CODE).send({
+            message: 'Пользователь не найден'
         });
     } catch (err) {
         if (err.name === 'ValidationError') {
-            return res.status(400).send({
-                message: 'Переданы некорректные данные',
-                ...err
+            return res.status(ERROR_CODE).send({
+                message: 'Переданы некорректные данные'
             });
         }
         if (err.name === 'CastError') {
-            return res.status(404).send({
-                message: 'Пользователь не найден',
-                ...err
+            return res.status(NOT_FOUND_CODE).send({
+                message: 'Пользователь не найден'
             });
         }
-        return res.status(500).send({
-            message: 'Произошла неизвестная ошибка',
-            ...err
+        return res.status(SERVER_ERROR_CODE).send({
+            message: 'Произошла неизвестная ошибка'
         });
     }
 };
@@ -73,38 +79,39 @@ const updateUserAvatar = async(req, res) => {
         }, {
             new: true,
             runValidators: true,
-            upsert: true,
+            upsert: false,
         }, );
-        return res.status(200).send({
-            data: user
+        if (user) {
+            return res.send({
+                data: user
+            });
+        }
+        return res.status(NOT_FOUND_CODE).send({
+            message: 'Пользователь не найден'
         });
     } catch (err) {
         if (err.name === 'ValidationError') {
-            return res.status(400).send({
-                message: 'Переданы некорректные данные',
-                ...err
+            return res.status(ERROR_CODE).send({
+                message: 'Переданы некорректные данные'
             });
         }
         if (err.name === 'CastError') {
-            return res.status(404).send({
-                message: 'Пользователь не найден',
-                ...err
+            return res.status(NOT_FOUND_CODE).send({
+                message: 'Пользователь не найден'
             });
         }
-        return res.status(500).send({
-            message: 'Произошла неизвестная ошибка',
-            ...err
+        return res.status(SERVER_ERROR_CODE).send({
+            message: 'Произошла неизвестная ошибка'
         });
     }
 };
 const getUsers = async(req, res) => {
     try {
         const users = await User.find({});
-        return res.status(200).send(users);
+        return res.send(users);
     } catch (err) {
-        return res.status(500).send({
-            message: 'Произошла неизвестная ошибка',
-            ...err
+        return res.status(SERVER_ERROR_CODE).send({
+            message: 'Произошла неизвестная ошибка'
         });
     }
 };
@@ -115,21 +122,19 @@ const getUserById = async(req, res) => {
         } = req.params;
         const user = await User.findById(id);
         if (user) {
-            return res.status(200).send(user);
+            return res.send(user);
         }
-        return res.status(404).send({
+        return res.status(NOT_FOUND_CODE).send({
             message: 'Пользователь не найден'
         });
     } catch (err) {
         if (err.name === 'CastError') {
-            return res.status(400).send({
-                message: 'Пользователь не найден',
-                ...err
+            return res.status(ERROR_CODE).send({
+                message: 'Пользователь не найден'
             });
         }
-        return res.status(500).send({
-            message: 'Произошла неизвестная ошибка',
-            ...err
+        return res.status(SERVER_ERROR_CODE).send({
+            message: 'Произошла неизвестная ошибка'
         });
     }
 };
