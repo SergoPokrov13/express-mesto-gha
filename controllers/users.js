@@ -1,3 +1,5 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const {
   CREATED_CODE,
@@ -12,11 +14,16 @@ const createUser = async (req, res) => {
       name,
       about,
       avatar,
+      email,
+      password,
     } = req.body;
+    const passwordHash = await bcrypt.hash(password, 10);
     const user = await User.create({
       name,
       about,
       avatar,
+      email,
+      password: passwordHash,
     });
     return res.status(CREATED_CODE).send({
       data: user,
@@ -139,10 +146,38 @@ const getUserById = async (req, res) => {
     });
   }
 };
+
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(NOT_FOUND_CODE).send({ message: 'Неправильный пользователь или пароль' });
+    }
+    const matched = await bcrypt.compare(password, user.password);
+    if (!matched) {
+      return res.status(NOT_FOUND_CODE).send({ message: 'Неправильный пользователь или пароль' });
+    }
+    const token = jwt.sign({
+      _id: user._id,
+    }, 'secret');
+
+    return res.cookie('jwt', token, {
+      maxAge: 3600000,
+      httpOnly: true,
+      sameSite: true,
+    })
+      .end();
+  } catch (err) {
+    return res.status(SERVER_ERROR_CODE).send({ message: 'Произошла неизвестная ошибка' });
+  }
+};
+
 module.exports = {
   getUsers,
   getUserById,
-  createUser,
   updateUser,
   updateUserAvatar,
+  createUser,
+  login,
 };

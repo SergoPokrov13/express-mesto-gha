@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = require('./routes');
 
+const { login, createUser } = require('./controllers/users');
+
 const { PORT = 3000 } = process.env;
 const app = express();
 
@@ -14,9 +16,11 @@ app.use((req, res, next) => {
   req.user = {
     _id: '630c8b8343eb3021b47cc312',
   };
-
   next();
 });
+
+app.post('/signup', createUser);
+app.post('/signin', login);
 
 app.use(router);
 app.use(express.json());
