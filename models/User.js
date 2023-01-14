@@ -3,22 +3,23 @@ const mongoose = require('mongoose');
 const userSchema = mongoose.Schema({
   name: {
     type: String,
-    required: true,
     minlength: [2, 'Строка должна содержать как минимум 2 символа'],
     maxlength: [30, 'Строка не должна первышать 30 символов'],
     default: 'Жак-Ив Кусто',
   },
   about: {
     type: String,
-    required: true,
     minlength: [2, 'Строка должна содержать как минимум 2 символа'],
     maxlength: [30, 'Строка не должна первышать 30 символов'],
-    default: 'Исследователь океана',
+    default: 'Исследователь',
   },
   avatar: {
     type: String,
-    required: true,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    validate: {
+      validator: (v) => /^(https?):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])$/.test(v),
+      message: 'Не правильный формат ссылки',
+    },
   },
   email: {
     type: String,

@@ -10,9 +10,9 @@ const UnauthorizedError = require('../errors/UnauthorizedError');
 const createUser = async (req, res, next) => {
   try {
     const {
-      name,
-      about,
-      avatar,
+      name = 'Жак-Ив Кусто',
+      about = 'Исследователь',
+      avatar = 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
       email,
       password,
     } = req.body;
@@ -24,16 +24,21 @@ const createUser = async (req, res, next) => {
       email,
       password: passwordHash,
     });
-    delete user.password;
     return res.status(CREATED_CODE).send({
-      data: user,
+      data: {
+        _id: user._id,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        email: user.email,
+      },
     });
   } catch (err) {
-    if (err.name === 'ValidationError') {
-      return next(new BadRequestError('Переданы некорректные данные'));
-    }
     if (err.code === 11000) {
       return next(new ConflictError('Пользователь с таким email уже существует'));
+    }
+    if (err.name === 'ValidationError') {
+      return next(new BadRequestError('Переданы некорректные данные'));
     }
     return next(err);
   }
@@ -121,10 +126,10 @@ const getUserById = async (req, res, next) => {
     if (user) {
       return res.send(user);
     }
-    return next(new BadRequestError('Пользователь не найден'));
+    return next(new NotFoundError('Пользователь не найден'));
   } catch (err) {
     if (err.name === 'CastError') {
-      return next(new NotFoundError('Пользователь не найден'));
+      return next(new BadRequestError('Пользователь не найден'));
     }
     return next(err);
   }

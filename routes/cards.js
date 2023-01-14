@@ -11,16 +11,35 @@ const {
 
 const cardRoutes = express.Router();
 
-cardRoutes.delete('/:id', deleteCard);
+cardRoutes.get('/:id', celebrate({
+  params: Joi.object().keys({
+    id: Joi.string().hex(),
+  }),
+}), getCardById);
+
+cardRoutes.delete('/:id', celebrate({
+  params: Joi.object().keys({
+    id: Joi.string().hex(),
+  }),
+}), deleteCard);
+
 cardRoutes.post('/', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
-    link: Joi.string().required(),
+    link: Joi.string().required().pattern(/^(https?):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])$/),
   }),
 }), createCard);
 cardRoutes.get('/', getCards);
-cardRoutes.get('/:id', getCardById);
-cardRoutes.put('/:cardId/likes', express.json(), likeCard);
-cardRoutes.delete('/:cardId/likes', express.json(), dislikeCard);
+cardRoutes.put('/:cardId/likes', celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().hex(),
+  }),
+}), likeCard);
+
+cardRoutes.delete('/:cardId/likes', celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().hex(),
+  }),
+}), dislikeCard);
 
 module.exports = cardRoutes;
