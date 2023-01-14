@@ -1,6 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
+const { celebrate, Joi, errors } = require('celebrate');
+
 const router = require('./routes');
+
+const auth = require('./middlewares/auth');
+const errorsHandler = require('./middlewares/errorsHandler');
 
 const { login, createUser } = require('./controllers/users');
 
@@ -12,18 +18,28 @@ mongoose.connect('mongodb://0.0.0.0:27017/mestodb', {
   useUnifiedTopology: false,
 });
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '630c8b8343eb3021b47cc312',
-  };
-  next();
-});
+app.use(cookieParser());
 
-app.post('/signup', createUser);
-app.post('/signin', login);
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    about: Joi.string().required().min(2).max(30),
+    avatar: Joi.string().required(),
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
+  }),
+}), createUser);
 
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
+  }),
+}), login);
+app.use(auth);
 app.use(router);
-app.use(express.json());
+app.use(errors());
+app.use(errorsHandler);
 
 app.listen(PORT, () => {
   console.log(`Сервер запущен на ${PORT} порту`);

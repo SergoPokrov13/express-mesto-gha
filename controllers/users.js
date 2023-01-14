@@ -1,14 +1,13 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const {
-  CREATED_CODE,
-  ERROR_CODE,
-  NOT_FOUND_CODE,
-  SERVER_ERROR_CODE,
-} = require('../utils/statusError');
+const { CREATED_CODE } = require('../utils/statusError');
+const NotFoundError = require('../errors/NotFoundError');
+const BadRequestError = require('../errors/BadRequestError');
+const ConflictError = require('../errors/ConflictError');
+const UnauthorizedError = require('../errors/UnauthorizedError');
 
-const createUser = async (req, res) => {
+const createUser = async (req, res, next) => {
   try {
     const {
       name,
@@ -25,21 +24,21 @@ const createUser = async (req, res) => {
       email,
       password: passwordHash,
     });
+    delete user.password;
     return res.status(CREATED_CODE).send({
       data: user,
     });
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(ERROR_CODE).send({
-        message: 'Переданы некорректные данные',
-      });
+      return next(new BadRequestError('Переданы некорректные данные'));
     }
-    return res.status(SERVER_ERROR_CODE).send({
-      message: 'Произошла неизвестная ошибка',
-    });
+    if (err.code === 11000) {
+      return next(new ConflictError('Пользователь с таким email уже существует'));
+    }
+    return next(err);
   }
 };
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
   try {
     const {
       name,
@@ -58,26 +57,18 @@ const updateUser = async (req, res) => {
         data: user,
       });
     }
-    return res.status(ERROR_CODE).send({
-      message: 'Пользователь не найден',
-    });
+    return next(new NotFoundError('Пользователь не найден'));
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(ERROR_CODE).send({
-        message: 'Переданы некорректные данные',
-      });
+      return next(new BadRequestError('Переданы некорректные данные'));
     }
     if (err.name === 'CastError') {
-      return res.status(NOT_FOUND_CODE).send({
-        message: 'Пользователь не найден',
-      });
+      return next(new NotFoundError('Пользователь не найден'));
     }
-    return res.status(SERVER_ERROR_CODE).send({
-      message: 'Произошла неизвестная ошибка',
-    });
+    return next(err);
   }
 };
-const updateUserAvatar = async (req, res) => {
+const updateUserAvatar = async (req, res, next) => {
   try {
     const {
       avatar,
@@ -94,36 +85,34 @@ const updateUserAvatar = async (req, res) => {
         data: user,
       });
     }
-    return res.status(ERROR_CODE).send({
-      message: 'Пользователь не найден',
-    });
+    return next(new NotFoundError('Пользователь не найден'));
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(ERROR_CODE).send({
-        message: 'Переданы некорректные данные',
-      });
+      return next(new BadRequestError('Переданы некорректные данные'));
     }
     if (err.name === 'CastError') {
-      return res.status(NOT_FOUND_CODE).send({
-        message: 'Пользователь не найден',
-      });
+      return next(new NotFoundError('Пользователь не найден'));
     }
-    return res.status(SERVER_ERROR_CODE).send({
-      message: 'Произошла неизвестная ошибка',
-    });
+    return next(err);
   }
 };
-const getUsers = async (req, res) => {
+const getUsers = async (req, res, next) => {
   try {
     const users = await User.find({});
-    return res.send(users);
+    res.send(users);
   } catch (err) {
-    return res.status(SERVER_ERROR_CODE).send({
-      message: 'Произошла неизвестная ошибка',
-    });
+    next(err);
   }
 };
-const getUserById = async (req, res) => {
+const getUserInfo = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    res.send(user);
+  } catch (err) {
+    next(err);
+  }
+};
+const getUserById = async (req, res, next) => {
   try {
     const {
       id,
@@ -132,31 +121,25 @@ const getUserById = async (req, res) => {
     if (user) {
       return res.send(user);
     }
-    return res.status(NOT_FOUND_CODE).send({
-      message: 'Пользователь не найден',
-    });
+    return next(new BadRequestError('Пользователь не найден'));
   } catch (err) {
     if (err.name === 'CastError') {
-      return res.status(ERROR_CODE).send({
-        message: 'Пользователь не найден',
-      });
+      return next(new NotFoundError('Пользователь не найден'));
     }
-    return res.status(SERVER_ERROR_CODE).send({
-      message: 'Произошла неизвестная ошибка',
-    });
+    return next(err);
   }
 };
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      return res.status(NOT_FOUND_CODE).send({ message: 'Неправильный пользователь или пароль' });
+      return next(new UnauthorizedError('Неправильный пользователь или пароль'));
     }
     const matched = await bcrypt.compare(password, user.password);
     if (!matched) {
-      return res.status(NOT_FOUND_CODE).send({ message: 'Неправильный пользователь или пароль' });
+      return next(new NotFoundError('Неправильный пользователь или пароль'));
     }
     const token = jwt.sign({
       _id: user._id,
@@ -167,14 +150,15 @@ const login = async (req, res) => {
       httpOnly: true,
       sameSite: true,
     })
-      .end();
+      .send({ messge: 'Успешная авторизация' });
   } catch (err) {
-    return res.status(SERVER_ERROR_CODE).send({ message: 'Произошла неизвестная ошибка' });
+    return next(err);
   }
 };
 
 module.exports = {
   getUsers,
+  getUserInfo,
   getUserById,
   updateUser,
   updateUserAvatar,

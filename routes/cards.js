@@ -1,3 +1,4 @@
+const { celebrate, Joi } = require('celebrate');
 const express = require('express');
 const {
   createCard,
@@ -11,7 +12,12 @@ const {
 const cardRoutes = express.Router();
 
 cardRoutes.delete('/:id', deleteCard);
-cardRoutes.post('/', express.json(), createCard);
+cardRoutes.post('/', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    link: Joi.string().required(),
+  }),
+}), createCard);
 cardRoutes.get('/', getCards);
 cardRoutes.get('/:id', getCardById);
 cardRoutes.put('/:cardId/likes', express.json(), likeCard);
