@@ -10,9 +10,9 @@ const UnauthorizedError = require('../errors/UnauthorizedError');
 const createUser = async (req, res, next) => {
   try {
     const {
-      name = 'Жак-Ив Кусто',
-      about = 'Исследователь',
-      avatar = 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+      name,
+      about,
+      avatar,
       email,
       password,
     } = req.body;
@@ -67,9 +67,6 @@ const updateUser = async (req, res, next) => {
     if (err.name === 'ValidationError') {
       return next(new BadRequestError('Переданы некорректные данные'));
     }
-    if (err.name === 'CastError') {
-      return next(new NotFoundError('Пользователь не найден'));
-    }
     return next(err);
   }
 };
@@ -94,9 +91,6 @@ const updateUserAvatar = async (req, res, next) => {
   } catch (err) {
     if (err.name === 'ValidationError') {
       return next(new BadRequestError('Переданы некорректные данные'));
-    }
-    if (err.name === 'CastError') {
-      return next(new NotFoundError('Пользователь не найден'));
     }
     return next(err);
   }
@@ -144,7 +138,7 @@ const login = async (req, res, next) => {
     }
     const matched = await bcrypt.compare(password, user.password);
     if (!matched) {
-      return next(new NotFoundError('Неправильный пользователь или пароль'));
+      return next(new UnauthorizedError('Неправильный пользователь или пароль'));
     }
     const token = jwt.sign({
       _id: user._id,
@@ -161,6 +155,14 @@ const login = async (req, res, next) => {
   }
 };
 
+const signout = (req, res, next) => {
+  try {
+    res.clearCookie('jwt').send({ message: 'Выход' });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getUsers,
   getUserInfo,
@@ -169,4 +171,5 @@ module.exports = {
   updateUserAvatar,
   createUser,
   login,
+  signout,
 };

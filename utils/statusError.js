@@ -1,11 +1,5 @@
 const CREATED_CODE = 201;
-const ERROR_CODE = 400;
-const NOT_FOUND_CODE = 404;
 const SERVER_ERROR_CODE = 500;
+const URL_REGEXP = /^(https?):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])$/;
 
-module.exports = {
-  NOT_FOUND_CODE,
-  SERVER_ERROR_CODE,
-  CREATED_CODE,
-  ERROR_CODE,
-};
+module.exports = { CREATED_CODE, SERVER_ERROR_CODE, URL_REGEXP };

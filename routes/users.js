@@ -1,5 +1,6 @@
 const express = require('express');
 const { celebrate, Joi } = require('celebrate');
+const { URL_REGEXP } = require('../utils/statusError');
 const {
   updateUser,
   getUsers,
@@ -25,7 +26,9 @@ userRoutes.patch('/me', celebrate({
   }),
 }), updateUser);
 userRoutes.patch('/me/avatar', celebrate({
-  body: Joi.object().keys({ avatar: Joi.string().required().pattern(/^(https?):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])$/) }),
+  body: Joi.object().keys({
+    avatar: Joi.string().required().pattern(URL_REGEXP),
+  }),
 }), updateUserAvatar);
 
 module.exports = userRoutes;
