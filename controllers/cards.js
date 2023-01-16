@@ -97,23 +97,8 @@ const getCards = async (req, res, next) => {
     next(err);
   }
 };
-const getCardById = async (req, res, next) => {
-  try {
-    const {
-      id,
-    } = req.params;
-    const card = await Card.findById(id);
-    return res.send(card);
-  } catch (err) {
-    if (err.name === 'CastError') {
-      return next(new NotFoundError('Карточка не найдена'));
-    }
-    return next(err);
-  }
-};
 module.exports = {
   getCards,
-  getCardById,
   createCard,
   deleteCard,
   likeCard,

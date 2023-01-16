@@ -10,9 +10,9 @@ const UnauthorizedError = require('../errors/UnauthorizedError');
 const createUser = async (req, res, next) => {
   try {
     const {
-      name = 'Жак-Ив Кусто',
-      about = 'Исследователь',
-      avatar = 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+      name,
+      about,
+      avatar,
       email,
       password,
     } = req.body;
@@ -161,6 +161,14 @@ const login = async (req, res, next) => {
   }
 };
 
+const signout = (req, res, next) => {
+  try {
+    res.clearCookie('jwt').send({ message: 'Выход' });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getUsers,
   getUserInfo,
@@ -168,5 +176,6 @@ module.exports = {
   updateUser,
   updateUserAvatar,
   createUser,
+  signout,
   login,
 };

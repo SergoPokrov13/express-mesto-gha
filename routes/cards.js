@@ -4,18 +4,11 @@ const {
   createCard,
   deleteCard,
   getCards,
-  getCardById,
   likeCard,
   dislikeCard,
 } = require('../controllers/cards');
 
 const cardRoutes = express.Router();
-
-cardRoutes.get('/:id', celebrate({
-  params: Joi.object().keys({
-    id: Joi.string().hex(),
-  }),
-}), getCardById);
 
 cardRoutes.delete('/:id', celebrate({
   params: Joi.object().keys({
