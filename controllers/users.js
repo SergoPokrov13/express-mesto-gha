@@ -170,6 +170,6 @@ module.exports = {
   updateUser,
   updateUserAvatar,
   createUser,
-  login,
   signout,
+  login,
 };
