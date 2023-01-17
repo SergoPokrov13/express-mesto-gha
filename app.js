@@ -19,6 +19,7 @@ mongoose.connect('mongodb://0.0.0.0:27017/mestodb', {
   useUnifiedTopology: false,
 });
 
+app.use(express.json());
 app.use(cookieParser());
 
 app.post('/signup', celebrate({
