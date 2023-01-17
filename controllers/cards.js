@@ -30,7 +30,7 @@ const deleteCard = async (req, res, next) => {
     }
     return next(new NotFoundError('Карточка не найдена'));
   } catch (err) {
-    if (err.name === 'CastError' || err.name === 'ValidationError') {
+    if (err.name === 'CastError') {
       return next(new BadRequestError('Переданы некорректные данные'));
     }
     return next(err);

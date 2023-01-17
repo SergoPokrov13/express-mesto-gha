@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const validator = require('validator');
 const { URL_REGEXP } = require('../utils/statusError');
 
 const userSchema = mongoose.Schema({
@@ -24,8 +25,12 @@ const userSchema = mongoose.Schema({
   },
   email: {
     type: String,
-    required: true,
+    required: [true, 'Поле email должно быть заполнено!'],
     unique: true,
+    validate: {
+      validator: (email) => { validator.isEmail(email); },
+      message: 'Указан не корректный email',
+    },
   },
   password: {
     type: String,
