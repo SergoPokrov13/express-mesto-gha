@@ -4,15 +4,6 @@ const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
 const ForbiddenError = require('../errors/ForbiddenError');
 
-const getCards = async (req, res, next) => {
-  try {
-    const cards = await Card.find({});
-    res.send(cards);
-  } catch (err) {
-    next(err);
-  }
-};
-
 const createCard = async (req, res, next) => {
   try {
     const { name, link } = req.body;
@@ -79,6 +70,15 @@ const dislikeCard = async (req, res, next) => {
       return next(new BadRequestError('Карточка не найдена'));
     }
     return next(err);
+  }
+};
+
+const getCards = async (req, res, next) => {
+  try {
+    const cards = await Card.find({});
+    res.send(cards);
+  } catch (err) {
+    next(err);
   }
 };
 
