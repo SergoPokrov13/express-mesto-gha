@@ -55,7 +55,6 @@ const updateUser = async (req, res, next) => {
     }, {
       new: true,
       runValidators: true,
-      upsert: false,
     });
     if (user) {
       return res.send({
@@ -80,7 +79,6 @@ const updateUserAvatar = async (req, res, next) => {
     }, {
       new: true,
       runValidators: true,
-      upsert: false,
     });
     if (user) {
       return res.send({
